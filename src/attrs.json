@@ -1,0 +1,33 @@
+{
+	"type": {
+        "type": "string",
+        "default": "post"
+    },
+	"taxonomy": {
+        "type": "string",
+        "default": ""
+    },
+	"term": {
+        "type": "array",
+		"default": [],
+		"items": {
+			"type": "number"
+		}
+    },
+	"number": {
+        "type": "number",
+        "default": 10
+    },
+	"columns": {
+        "type": "number",
+        "default": 1
+    },
+	"order": {
+        "type": "string",
+        "default": "ID"
+    },
+	"sort": {
+        "type": "string",
+        "default": "ASC"
+    }
+}
