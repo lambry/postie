@@ -1,7 +1,7 @@
 {
-	"name": "renderless",
-	"version": "0.1.0",
-	"description": "A renderless WordPress posts block.",
+	"name": "postie",
+	"version": "0.1.1",
+	"description": "A WordPress block for fetching posts, pages and custom post types.",
 	"author": "Lambry",
 	"license": "GPL-2.0-or-later",
 	"main": "build/index.js",

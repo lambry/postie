@@ -1,4 +1,12 @@
 {
+	"number": {
+        "type": "number",
+        "default": 10
+    },
+	"columns": {
+        "type": "number",
+        "default": 1
+    },
 	"type": {
         "type": "string",
         "default": "post"
@@ -14,17 +22,13 @@
 			"type": "number"
 		}
     },
-	"number": {
-        "type": "number",
-        "default": 10
-    },
-	"columns": {
-        "type": "number",
-        "default": 1
-    },
 	"order": {
         "type": "string",
         "default": "ID"
+    },
+	"meta": {
+        "type": "string",
+        "default": ""
     },
 	"sort": {
         "type": "string",

@@ -4,10 +4,10 @@ import icon from './icon'
 import edit from './edit'
 import attrs from './attrs.json'
 
-registerBlockType('lambry/renderless', {
+registerBlockType('lambry/postie', {
     icon,
-    title: __('Posts', 'renderless'),
-    description: __('Display posts, pages and custom post types.', 'renderless'),
+    title: __('Postie', 'postie'),
+    description: __('Posts, pages and custom types.', 'postie'),
 	attributes: attrs,
 	category: 'widgets',
 	supports: {
