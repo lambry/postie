@@ -7,6 +7,10 @@
         "type": "number",
         "default": 1
     },
+	"sticky": {
+        "type": "boolean",
+        "default": false
+    },
 	"type": {
         "type": "string",
         "default": "post"
@@ -22,16 +26,32 @@
 			"type": "number"
 		}
     },
-	"order": {
-        "type": "string",
-        "default": "ID"
+	"filter": {
+        "type": "boolean",
+        "default": false
     },
-	"meta": {
+	"filterBy": {
         "type": "string",
         "default": ""
     },
-	"sort": {
+	"filterType": {
+        "type": "string",
+        "default": "is"
+    },
+	"filterValue": {
+        "type": "string",
+        "default": ""
+	},
+	"order": {
         "type": "string",
         "default": "ASC"
+    },
+	"orderBy": {
+        "type": "string",
+        "default": "ID"
+    },
+	"orderMeta": {
+        "type": "string",
+        "default": ""
     }
 }

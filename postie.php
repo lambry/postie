@@ -15,6 +15,10 @@ namespace Lambry\Postie;
 
 class Init
 {
+	public $comparators = [
+		'is' => '=', 'not' => '!=', 'lt' => '<', 'gt' => '>', 'lte' => '<=', 'gte' => '>='
+	];
+
 	/**
      * Setup actions and filters.
      */
@@ -23,17 +27,6 @@ class Init
 		add_action('init', [$this, 'block']);
 		add_action('rest_api_init', [$this, 'endpoints']);
 		add_filter('site_transient_update_plugins', [$this, 'updates']);
-	}
-
-	/**
-	 * Remove update notifications as this plugin isn't managed
-	 * via the WordPress plugins repo, and the name already exists.
-	 */
-	function updates($updates)
-	{
-		unset($updates->response[plugin_basename(__FILE__)]);
-
-		return $updates;
 	}
 
 	/**
@@ -50,6 +43,43 @@ class Init
 			'editor_script' => 'postie-script',
 			'render_callback' => [$this, 'render']
 		]);
+	}
+
+	/**
+	 * Setup endpoints.
+	 */
+	public function endpoints() : void
+	{
+		register_rest_route('postie', '/taxonomies/(?P<type>[\w-]+)', [
+			'methods'  => \WP_REST_Server::READABLE,
+			'sanitize_callback' => 'sanitize_text_field',
+			'permission_callback' => fn() => current_user_can('edit_posts'),
+			'callback' => [$this, 'taxonomies']
+		]);
+
+		register_rest_route('postie', '/terms/(?P<taxonomy>[\w-]+)', [
+			'methods'  => \WP_REST_Server::READABLE,
+			'sanitize_callback' => 'sanitize_text_field',
+			'permission_callback' => fn() => current_user_can('edit_posts'),
+			'callback' => [$this, 'terms']
+		]);
+
+		register_rest_route('postie', '/fields', [
+			'methods'  => \WP_REST_Server::READABLE,
+			'permission_callback' => fn() => current_user_can('edit_posts'),
+			'callback' => [$this, 'fields']
+		]);
+	}
+
+	/**
+	 * Remove update notifications as this plugin isn't managed
+	 * via the WordPress plugins repo, and the name already exists.
+	 */
+	function updates($updates)
+	{
+		unset($updates->response[plugin_basename(__FILE__)]);
+
+		return $updates;
 	}
 
 	/**
@@ -84,22 +114,16 @@ class Init
 	/**
 	 * Get the relevant posts.
 	 */
-	public function posts(array $attrs) : array
+	public function posts(array $attrs) : \WP_Query
 	{
 		$args = [
 			'post_status' => 'publish',
+			'ignore_sticky_posts' => ! rest_sanitize_boolean($attrs['sticky']),
 			'post_type' => sanitize_text_field($attrs['type']),
 			'posts_per_page' => sanitize_text_field($attrs['number']),
-			'orderby' => sanitize_text_field($attrs['order']),
-			'order' => sanitize_text_field($attrs['sort'])
+			'orderby' => sanitize_text_field($attrs['orderBy']),
+			'order' => sanitize_text_field($attrs['order'])
 		];
-
-		if ($attrs['meta']) {
-			[$key, $type] = explode('::', $attrs['meta']);
-
-			$args['meta_key'] = $key;
-			$args['orderby'] = $type === 'int' ? 'meta_value_num' : 'meta_value';
-		}
 
 		if ($attrs['taxonomy'] && $attrs['term']) {
 			$args['tax_query'] = [[
@@ -109,33 +133,26 @@ class Init
 			]];
 		}
 
-		return get_posts(apply_filters('postie/query', $args));
-	}
+		if ($attrs['filter'] && $attrs['filterBy'] && $attrs['filterValue']) {
+			[$key, $type] = explode('::', sanitize_text_field($attrs['filterBy']));
+			$value = sanitize_text_field($attrs['filterValue']);
 
-	/**
-	 * Setup endpoints.
-	 */
-	public function endpoints() : void
-	{
-		register_rest_route('postie', '/taxonomies/(?P<type>[\w-]+)', [
-			'methods'  => \WP_REST_Server::READABLE,
-			'sanitize_callback' => 'sanitize_text_field',
-			'permission_callback' => fn() => current_user_can('edit_posts'),
-			'callback' => [$this, 'taxonomies']
-		]);
+			$args['meta_query'] = [[
+				'key' => $key,
+				'value' => is_numeric($value) ? (int) $value : $value,
+				'type' => is_numeric($value) ? 'NUMERIC' : 'CHAR',
+				'compare' => $this->comparators[$attrs['filterType']]
+			]];
+		}
 
-		register_rest_route('postie', '/terms/(?P<taxonomy>[\w-]+)', [
-			'methods'  => \WP_REST_Server::READABLE,
-			'sanitize_callback' => 'sanitize_text_field',
-			'permission_callback' => fn() => current_user_can('edit_posts'),
-			'callback' => [$this, 'terms']
-		]);
+		if ($attrs['orderMeta']) {
+			[$key, $type] = explode('::', sanitize_text_field($attrs['orderMeta']));
 
-		register_rest_route('postie', '/meta', [
-			'methods'  => \WP_REST_Server::READABLE,
-			'permission_callback' => fn() => current_user_can('edit_posts'),
-			'callback' => [$this, 'meta']
-		]);
+			$args['meta_key'] = $key;
+			$args['orderby'] = $type === 'int' ? 'meta_value_num' : 'meta_value';
+		}
+
+		return new \WP_Query(apply_filters('postie/query', $args));
 	}
 
 	/**
@@ -165,33 +182,25 @@ class Init
 	/**
 	 * Get all relevant custom fields, i.e. meta keys and types.
 	 */
-	public function meta(\WP_REST_Request $request) : array
+	public function fields(\WP_REST_Request $request) : array
 	{
-		$post = $this->posts([
-			'number' => 1,
-			'type' => $request->get_param('type'),
-			'taxonomy' => $request->get_param('taxonomy'),
-			'term' => $request->get_param('term'),
-			'order' => $request->get_param('order'),
-			'sort' => $request->get_param('sort')
-		]);
+		$query = $this->posts($request->get_params());
 
-		if ($post) {
-			$keys = get_post_custom_keys($post[0]->ID) ?: [];
-			$fields = array_values(array_diff($keys, ['_edit_lock', '_edit_last', '_thumbnail_id']));
+		if (! $query->have_posts()) return [];
 
-			return array_map(function($field) use ($post) {
-				$meta = get_post_meta($post[0]->ID, $field, true);
-				$type = $meta && is_numeric($meta) ? 'int' : 'string';
+		$id = $query->posts[0]->ID;
+		$keys = get_post_custom_keys($id) ?: [];
+		$fields = array_values(array_diff($keys, ['_edit_lock', '_edit_last', '_thumbnail_id']));
 
-				return [
-					'value' => "{$field}::{$type}",
-					'label' => ucfirst(trim(str_replace('_', ' ', $field)))
-				];
-			}, $fields);
-		}
+		return array_map(function($field) use ($id) {
+			$meta = get_post_meta($id, $field, true);
+			$type = $meta && is_numeric($meta) ? 'int' : 'string';
 
-		return $post;
+			return [
+				'value' => "{$field}::{$type}",
+				'label' => ucfirst(trim(str_replace('_', ' ', $field)))
+			];
+		}, $fields);
 	}
 }
 
