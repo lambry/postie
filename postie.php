@@ -3,7 +3,7 @@
  * Plugin Name: Postie
  * Plugin URI: https://github.com/lambry/postie/
  * Description: A WordPress block for fetching posts, pages and custom post types.
- * Version: 0.1.1
+ * Version: 0.1.2
  * Author: Lambry
  * Author URI: https://lambry.com/
  * License: GPL-2.0-or-later
@@ -50,6 +50,12 @@ class Init
 	 */
 	public function endpoints() : void
 	{
+		register_rest_route('postie', '/pages', [
+			'methods'  => \WP_REST_Server::READABLE,
+			'permission_callback' => fn() => current_user_can('edit_posts'),
+			'callback' => [$this, 'pages']
+		]);
+
 		register_rest_route('postie', '/taxonomies/(?P<type>[\w-]+)', [
 			'methods'  => \WP_REST_Server::READABLE,
 			'sanitize_callback' => 'sanitize_text_field',
@@ -125,6 +131,10 @@ class Init
 			'order' => sanitize_text_field($attrs['order'])
 		];
 
+		if ($attrs['page']) {
+			$args[($attrs['pageChildren'] ? 'post_parent__in' : 'post__in')] = array_map('sanitize_text_field', (array) $attrs['page']);
+		}
+
 		if ($attrs['taxonomy'] && $attrs['term']) {
 			$args['tax_query'] = [[
 				'field' => 'id',
@@ -153,6 +163,18 @@ class Init
 		}
 
 		return new \WP_Query(apply_filters('postie/query', $args));
+	}
+
+	/**
+	 * Get all pages.
+	 */
+	public function pages(\WP_REST_Request $request) : array
+	{
+		$pages = get_pages();
+
+		if (! $pages) return [];
+
+		return array_map(fn($page) => ['id' => $page->ID, 'value' => $page->post_title], array_values($pages));
 	}
 
 	/**

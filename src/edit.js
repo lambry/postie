@@ -9,15 +9,17 @@ import { get, query } from './api'
 import attrs from './attrs.json'
 
 export default function Edit({ attributes, setAttributes }) {
-	const { number, columns, sticky, type, taxonomy, term, filter, filterBy, filterType, filterValue, order, orderBy, orderMeta } = attributes
+	const { number, columns, sticky, type, page, pageChildren, taxonomy, term, filter, filterBy, filterType, filterValue, order, orderBy, orderMeta } = attributes
 
 	const types = useSelect(select => select('core').getPostTypes()) || []
+	let [pages, setPages] = useState([])
 	let [taxonomies, setTaxonomies] = useState([])
 	let [terms, setTerms] = useState([])
 	let [fields, setFields] = useState([])
 
 	useEffect(() => {
 		if (type) get(`taxonomies/${type}`).then(setTaxonomies)
+		if (type === 'page') get('pages').then(setPages)
 		if (taxonomy) get(`terms/${taxonomy}`).then(setTerms)
 		if (orderBy === 'meta' || filter) get(`fields/?${query(attributes)}`).then(setFields)
 	}, [])
@@ -26,7 +28,17 @@ export default function Edit({ attributes, setAttributes }) {
 		setAttributes({ type, term: attrs.term.default, taxonomy: attrs.taxonomy.default })
 
 		get(`taxonomies/${type}`).then(setTaxonomies)
+
+		if (type === 'page') get('pages').then(setPages)
 	}
+
+	const updateToken = (value, field, options) => {
+		setAttributes({
+			[field]: value.map(s => options.find(({ id, value }) => value === s || id === s.id)?.id)
+		})
+	}
+
+	const tokenValue = (value, options) => value.map(id => ({ id, value: options.find(t => t.id === id)?.value }))
 
 	const updateTaxonomy = taxonomy => {
 		setAttributes({ taxonomy, term: attrs.term.default })
@@ -35,10 +47,6 @@ export default function Edit({ attributes, setAttributes }) {
 
 		get(`terms/${taxonomy}`).then(setTerms)
 	}
-
-	const updateTerm = term => setAttributes({
-		term: term.map(s => terms.find(({ id, value }) => value === s || id === s.id)?.id)
-	})
 
 	const updateFilter = () => {
 		if (!filter) {
@@ -70,13 +78,13 @@ export default function Edit({ attributes, setAttributes }) {
         <>
             <InspectorControls>
 				<PanelBody title={__('Display', 'postie')}>
-					<RangeControl
+					{(type !== 'page' || !page.length) && <RangeControl
 						min={1}
 						max={100}
 						label={__('Number', 'postie')}
 						value={number}
 						onChange={number => setAttributes({ number })}
-					/>
+					/>}
 					<RangeControl
 						min={1}
 						max={6}
@@ -97,6 +105,19 @@ export default function Edit({ attributes, setAttributes }) {
 						options={types.map(({ name, slug }) => ({ label: name, value: slug }))}
 						onChange={type => updateType(type)}
 					/>
+					{(type === 'page') &&
+						<FormTokenField
+							label={__('Pages', 'postie')}
+							value={tokenValue(page, pages)}
+							suggestions={pages.map(i => i.value)}
+							onChange={value => updateToken(value, 'page', pages)}
+						/>
+					}
+					{type === 'page' && <ToggleControl
+						label={__('Show children', 'postie')}
+						checked={pageChildren}
+						onChange={() => setAttributes({ pageChildren: !pageChildren })}
+					/>}
 					{(type && !!taxonomies.length) &&
 						<SelectControl
 							label={__('Taxonomy', 'postie')}
@@ -108,9 +129,9 @@ export default function Edit({ attributes, setAttributes }) {
 					{(taxonomy && !!terms.length) &&
 						<FormTokenField
 							label={__('Terms', 'postie')}
-							value={term.map(id => ({ id, value: terms.find(t => t.id === id)?.value }))}
+							value={tokenValue(term, terms)}
 							suggestions={terms.map(i => i.value)}
-							onChange={term => updateTerm(term)}
+							onChange={value => updateToken(value, 'term', terms)}
 						/>
 					}
 					<ToggleControl
