@@ -1,0 +1,24 @@
+/**
+ * The following styles get applied on the front end only.
+ */
+@import "swiper/scss/autoplay";
+@import "swiper/scss/effect-fade";
+
+:root {
+	--postie-slider-speed: 250;
+	--postie-accordion-speed: 0.5s;
+	--postie-accordion-easing: cubic-bezier(0.46, 0.03, 0.52, 0.96);
+}
+
+// Block styles
+.postie {
+	&-accordion {
+		&-toggle {
+			cursor: pointer;
+		}
+
+		&-content {
+			transition: height var(--postie-accordion-speed) var(--postie-accordion-easing);
+		}
+	}
+}

@@ -1,5 +1,22 @@
 import { __ } from '@wordpress/i18n'
 
+export const breakpointOptions = [
+	{ value: 'small', label: __('Small', 'postie') },
+	{ value: 'medium', label: __('Medium', 'postie') },
+	{ value: 'large', label: __('Large', 'postie') },
+]
+
+export const displayOptions = [
+	{ value: 'grid', label: __('Grid', 'postie') },
+	{ value: 'slider', label: __('Slider', 'postie') },
+	{ value: 'accordion', label: __('Accordion', 'postie') },
+]
+
+export const sourceOptions = [
+	{ value: 'feed', label: __('Feed', 'postie') },
+	{ value: 'specific', label: __('Specific', 'postie') }
+]
+
 export const filterTypes = [
 	{ value: 'is', label: __('Is equal to', 'postie') },
 	{ value: 'not', label: __('Is not equal to', 'postie') },

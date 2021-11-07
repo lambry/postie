@@ -1,10 +1,8 @@
 # Postie
 
-A WordPress block for fetching posts, pages and custom post types. 
+A WordPress block for fetching posts, pages and custom post types and displaying them as a `grid`, `slider` or `accordion`. 
 
 ![screenshot](screenshot.jpg)
-
-This plugin just adds the admin UI (i.e renderless block) for creating and managing post blocks, the actual display is up to you. 
 
 ## Features
 - Fetch any posts, pages and custom post types.
@@ -14,31 +12,45 @@ This plugin just adds the admin UI (i.e renderless block) for creating and manag
 
 With postie you can fetch; fantasy books that are less than $20 sorted by price, or properties that feature waterfront views, have 3 or more bedroom and are sorted by land size.
 
-## Why
-Deferring the display of content means you have complete control over markup, styles and functionality so you can craft the display to suit your needs. For example; if you're showing latest properties you may need to display data like `price`, `location` and `features`, or if you're displaying events you may want to show `venue`, `time`, and `tickets`.
+### Templates
 
-## How
-Just provide the desired HTML and style the output as you would any other part of your theme. This way you'll always have the cleanest markup and CSS for your needs.
+You can override any aspect of the display by creating templates in `my-theme-name/postie/` the basic template heirarchy is:
+- `grid.php`, `slider.php` and `accordion.php` will override the main template/wrapper for those display types.
+- `grid-item.php`, `slider-item.php` and `accordion-item.php` will override the template/display individual posts within those display types.
+- `grid-{post-type}.php`, `slider-{post-type}.php` and `accordion-{post-type}.php` will override the default template for individual posts within those display types, for example `grid-post.php` will override `grid-item.php` for posts and `slider-page.php` would override `slider-item.php` for pages.
+
+### Filters
 
 ```php
 <?php
-
 /**
- * Action to generate the blocks html.
- */
-add_action('postie/html', function(WP_Query $query, array $attrs) {
-    // Here you actually generate the html from the resulting query.
-    // No need to return it, just include your template or echo your content.
-}, 10, 2);
-
-/**
- * Filter to optionally modify the main query arguments.
+ * Filter to modify the main query arguments.
  */
 add_filter('postie/query', function(array $args) {
     return array_merge($args, ['author_name' => 'admin']);
 });
 
+/**
+ * Filter to set the no results i.e empty message.
+ */
+add_filter('postie/empty', function(string $message, string $display) {
+    return __('Sorry, there were no matching results.');
+}, 10, 2);
 ```
 
-### Notes
-Postie requires `PHP 7.4+`.
+### Custom properties
+
+Postie comes with little to no actually styling just what's need for the base layout, below are the available custom properties.
+
+```css
+:root {
+	--postie-grid-gap: 2rem;
+	--postie-slider-gap: 20px;
+	--postie-slider-speed: 250;
+	--postie-slider-theme: coral;
+	--postie-accordion-gap: 1.5rem;
+	--postie-accordion-speed: 0.5s;
+	--postie-accordion-easing: cubic-bezier(0.46, 0.03, 0.52, 0.96);
+}
+```
+Note: slider-gap must be set in pixels.

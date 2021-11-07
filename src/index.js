@@ -1,15 +1,18 @@
 import { __ } from '@wordpress/i18n'
 import { registerBlockType } from '@wordpress/blocks'
-import icon from './icon'
-import edit from './edit'
-import attrs from './attrs.json'
+import { grid } from "@wordpress/icons";
+import edit from './block/edit'
+import attributes from './block/attributes.json'
+import variations from './block/variations'
+import './style.scss';
 
 registerBlockType('lambry/postie', {
-    icon,
+    icon: grid,
     title: __('Postie', 'postie'),
-    description: __('Posts, pages and custom types.', 'postie'),
-	attributes: attrs,
+    description: __('Post grids, sliders and accordions.', 'postie'),
 	category: 'widgets',
+	attributes,
+	variations,
 	supports: {
 		align: true,
 		html: false

@@ -1,0 +1,126 @@
+{
+	"display": {
+        "type": "string",
+        "default": "grid"
+    },
+	"number": {
+        "type": "number",
+        "default": 12
+    },
+	"offset": {
+        "type": "number",
+        "default": 0
+    },
+	"columnsSmall": {
+        "type": "number",
+        "default": 1
+    },
+	"columnsMedium": {
+        "type": "number",
+        "default": 2
+    },
+	"columnsLarge": {
+        "type": "number",
+        "default": 3
+    },
+	"autoPlay": {
+        "type": "number",
+        "default": 0
+    },
+	"loopSlides": {
+        "type": "boolean",
+        "default": false
+    },
+	"fadeSlides": {
+        "type": "boolean",
+        "default": false
+    },
+	"openFirst": {
+        "type": "boolean",
+        "default": false
+    },
+	"openIndividually": {
+        "type": "boolean",
+        "default": false
+    },
+	"navigation": {
+        "type": "boolean",
+        "default": false
+    },
+	"pagination": {
+        "type": "boolean",
+        "default": false
+    },
+	"loadMore": {
+        "type": "boolean",
+        "default": false
+    },
+	"type": {
+        "type": "array",
+		"default": ["post"],
+		"items": {
+			"type": "string"
+		}
+	},
+	"taxonomy": {
+        "type": "array",
+		"default": [],
+		"items": {
+			"type": "string"
+		}
+    },
+	"term": {
+        "type": "array",
+		"default": [],
+		"items": {
+			"type": "string"
+		}
+    },
+	"specific": {
+		"type": "boolean",
+        "default": false
+    },
+	"include": {
+        "type": "array",
+		"default": [],
+		"items": {
+			"type": "number"
+		}
+	},
+	"children": {
+        "type": "boolean",
+        "default": false
+    },
+	"sticky": {
+		"type": "boolean",
+		"default": false
+	},
+	"filter": {
+        "type": "boolean",
+        "default": false
+    },
+	"filterBy": {
+        "type": "string",
+        "default": ""
+    },
+	"filterType": {
+        "type": "string",
+        "default": "is"
+    },
+	"filterValue": {
+        "type": "string",
+        "default": ""
+	},
+	"order": {
+        "type": "string",
+        "default": "ASC"
+    },
+	"orderBy": {
+        "type": "string",
+        "default": "ID"
+    },
+	"orderMeta": {
+        "type": "string",
+        "default": ""
+    }
+}

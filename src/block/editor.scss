@@ -1,0 +1,73 @@
+@use "sass:math";
+
+@import "../vars";
+
+// Controls
+.postie-panel {
+	> *:not(.components-toggle-control) + .components-toggle-control {
+		padding-top: 10px;
+	}
+}
+
+.postie-breakpoints {
+	position: relative;
+	padding-top: 5px;
+
+	&-options {
+		position: absolute;
+		right: 0;
+		top: 5px;
+		width: 115px;
+		display: flex;
+		gap: 5px;
+	}
+
+	.components-button-group .components-button {
+		height: auto;
+		line-height: 1;
+		padding: 2px 0;
+		box-shadow: none;
+		border-width: 1px;
+		border-style: solid;
+		border-color: transparent;
+		border-radius: 0;
+
+		&.is-active {
+			border-bottom-color: currentColor;
+		}
+	}
+}
+
+// Columns to mimic swiper widths
+$columns: 6;
+
+@for $i from 1 through $columns {
+	.postie[data-columns-small="#{$i}"] .postie-slider-item {
+		flex-basis: math.div(100%, $i);
+	}
+}
+
+@each $breakpoint, $width in $breakpoints {
+	@media (min-width: $width) {
+		@for $i from 1 through $columns {
+			.postie[data-columns-#{$breakpoint}="#{$i}"] .postie-slider-item {
+				flex-basis: math.div(100%, $i);
+			}
+		}
+	}
+}
+
+// Block styles
+.postie {
+	&-slider {
+		overflow: hidden;
+
+		.swiper-wrapper {
+			gap: var(--postie-gap);
+		}
+	}
+
+	&-accordion[data-open-first='1'] .postie-accordion-item:first-child .postie-accordion-content {
+		display: block;
+	}
+}
